@@ -1,0 +1,6 @@
+{
+  "meus-arquivos": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/SEU_USUARIO/Projetos"]
+  }
+}
