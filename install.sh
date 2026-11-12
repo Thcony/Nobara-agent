@@ -1,61 +1,77 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")"
+PROJECT_DIR="$(pwd)"
 
-echo "=== Instalador do Agente Nobara ==="
+echo ""
+echo "╔══════════════════════════════════════════╗"
+echo "║   🤖  INSTALADOR DO AGENTE NOBARA        ║"
+echo "╚══════════════════════════════════════════╝"
+echo ""
 
 if ! command -v python3 >/dev/null; then
     echo "ERRO: python3 não encontrado. Instale com: sudo dnf install python3"
     exit 1
 fi
 
-echo "[1/5] Instalando dependências de sistema (dnf)..."
+echo "[1/5] Instalando dependências de sistema (pedirá sua senha)..."
 if command -v dnf >/dev/null; then
-    sudo dnf install -y python3-pip portaudio-devel ffmpeg || \
+    sudo dnf install -y python3-pip portaudio-devel || \
         echo "AVISO: não foi possível instalar todos os pacotes de sistema. Verifique portaudio-devel."
 fi
 
-echo "[2/5] Criando o ambiente virtual (.venv)..."
+echo "[2/5] Criando o ambiente virtual (.venv) e instalando pacotes Python..."
 python3 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip >/dev/null
-pip install -r requirements.txt
+.venv/bin/pip install --upgrade pip --quiet
+.venv/bin/pip install -r requirements.txt
 
-echo "[3/5] Configurando a chave de API..."
+echo "[3/5] Preparando configuração..."
 if [ ! -f .env ]; then
     cp .env.example .env
 fi
-read -r -p "Cole sua GEMINI_API_KEY (obtida em https://aistudio.google.com): " KEY
-if [ -n "$KEY" ]; then
-    sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=$KEY|" .env
-    echo "Chave salva em .env"
-fi
-
-echo "[4/5] Configurando MCP (opcional)..."
 mkdir -p ~/.config/nobara-agent
 if [ ! -f ~/.config/nobara-agent/mcp_servers.json ] && [ -f mcp_servers.example.json ]; then
     cp mcp_servers.example.json ~/.config/nobara-agent/mcp_servers.json
-    echo "Exemplo copiado para ~/.config/nobara-agent/mcp_servers.json (edite se quiser usar MCP)."
 fi
 
-echo "[5/5] Criando o comando global 'nobara-agent'..."
+echo "[4/5] Criando o comando global 'nobara-agent'..."
 mkdir -p ~/.local/bin
 cat > ~/.local/bin/nobara-agent <<EOF
 #!/usr/bin/env bash
-cd "$(pwd)"
-source .venv/bin/activate
-exec python -m nobara_agent "\$@"
+cd "$PROJECT_DIR"
+exec .venv/bin/python -m nobara_agent "\$@"
 EOF
 chmod +x ~/.local/bin/nobara-agent
-chmod +x run.sh
 
 if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-    echo "Adicionei ~/.local/bin ao PATH (reabra o terminal para valer)."
+    echo "  → Adicionei ~/.local/bin ao PATH (reabra o terminal para valer)."
+fi
+
+echo "[5/5] Criando lançador 'Agente Nobara' no menu de aplicativos..."
+mkdir -p ~/.local/share/applications
+mkdir -p "$HOME/Desktop" 2>/dev/null || true
+cat > ~/.local/share/applications/nobara-agent.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=Agente Nobara
+Comment=Assistente de IA com voz e visão de tela
+Exec=bash -c 'cd "$PROJECT_DIR" && exec .venv/bin/python -m nobara_agent'
+Terminal=true
+Icon=utilities-terminal
+Categories=Utility;Development;
+EOF
+if [ -d "$HOME/Desktop" ]; then
+    cp ~/.local/share/applications/nobara-agent.desktop "$HOME/Desktop/" 2>/dev/null || true
+    chmod +x "$HOME/Desktop/nobara-agent.desktop" 2>/dev/null || true
 fi
 
 echo ""
-echo "=== Instalação concluída! ==="
-echo "Uso:"
-echo "  nobara-agent          # modo voz (microfone + alto-falante)"
-echo "  nobara-agent --texto  # modo texto, para testar sem microfone"
+echo "✔ Instalação concluída!"
+echo ""
+echo "  • Menu de aplicativos: procure 'Agente Nobara'"
+echo "  • Terminal: nobara-agent"
+echo ""
+echo "Abrindo o menu do agente..."
+sleep 2
+exec .venv/bin/python -m nobara_agent

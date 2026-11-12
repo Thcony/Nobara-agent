@@ -1,97 +1,72 @@
 # Agente Nobara 🎙️🤖
 
-Assistente de IA com **voz em tempo real** e **visão de tela** para o Nobara Linux,
-usando a Gemini Live API (Google). Executa comandos, diagnostica erros do sistema
-e conecta em servidores MCP (inclusive Roblox Studio via ponte da comunidade).
+Assistente de IA com **voz** (você fala, ele responde falando), **visão de tela**
+e **MCP** para o Nobara Linux, usando a API do Gemini — com menu visual no terminal.
 
 ## Instalação
 
 ```bash
-cd nobara-agent
-chmod +x install.sh run.sh
+git clone https://github.com/Thcony/Nobara-agent.git
+cd Nobara-agent
 ./install.sh
 ```
 
-O instalador cria o `.venv`, instala tudo, pede sua chave de API
-([pegue grátis no Google AI Studio](https://aistudio.google.com/)) e cria o
-comando global `nobara-agent`.
+> Se der "permissão negada", rode `chmod +x install.sh` antes.
+> Arquivos `.sh` não abrem com duplo clique no gerenciador de arquivos —
+> rode pelo terminal, ou use o lançador **"Agente Nobara"** que a instalação
+> cria no menu de aplicativos e na sua Área de Trabalho.
 
-## Uso
+O instalador faz tudo: dependências do sistema, venv, pacotes Python —
+e **abre o menu do agente** no final.
 
-```bash
-nobara-agent          # modo voz: fale no microfone, ele responde falando
-nobara-agent --texto  # modo texto, para testar sem microfone
-```
+## O menu
 
-Comandos durante a sessão (digite no terminal):
+| Opção | O que faz |
+|-------|-----------|
+| 🔑 Configurar chave de API | cola sua chave do [Google AI Studio](https://aistudio.google.com) (grátis) e salva no `.env` |
+| 🎙️ Escolher a voz | lista de vozes do Gemini (Aoede, Puck, Charon, Kore...) com descrição |
+| 🔊 Testar a voz | gera e toca uma frase de amostra com a voz escolhida |
+| 💬 Conversar por voz | **ENTER** para gravar → transcreve pt-BR (com gírias) → Gemini responde → fala com a voz escolhida |
+| ⌨️ Conversar por texto | chat escrito, com `tela` para anexar screenshot |
+| ⚙️ Configurações | troca modelos, confirmação de comandos, etc. |
 
-| Digite   | Efeito                                        |
-|----------|-----------------------------------------------|
-| `tela`   | envia um screenshot da sua tela para o agente |
-| `sair`   | encerra                                       |
-
-No modo voz, você também pode pedir: *"olha o que aparece na minha tela"* —
-ele captura e lê sozinho.
+Na conversa por voz: digite um texto em vez de dar ENTER para enviar escrito,
+` tela` faz ele olhar sua tela na hora, `sair` volta ao menu.
 
 ## O que o agente sabe fazer
 
-- **Ver sua tela** (ferramenta `ver_tela`, sob demanda)
-- **Executar comandos** (`rodar_comando`) — comandos somente-leitura rodam
-  direto; qualquer coisa destrutiva pede sua confirmação no terminal
+- **Ouvir você** (transcrição em português fluentes e gírias) e **responder falando**
+- **Ver sua tela** (digite `tela` ou peça "olha minha tela")
+- **Executar comandos** — somente-leitura rodam direto; destrutivos pedem confirmação
 - **Diagnosticar o Nobara**: `journalctl`, `dmesg`, `dnf`, logs do Steam/Proton
-- **Conectar em servidores MCP**
+- **Conectar em servidores MCP** via `~/.config/nobara-agent/mcp_servers.json`
+  (inclusive Roblox Studio, com plugin-ponte da comunidade)
 
-## MCP
-
-Edite `~/.config/nobara-agent/mcp_servers.json` (um exemplo é criado na
-instalação):
-
-```json
-{
-  "meus-arquivos": {
-    "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/voce/Projetos"]
-  }
-}
-```
-
-Cada chave vira um servidor MCP; as ferramentas dele ficam disponíveis
-automaticamente para o agente.
-
-### Roblox Studio
-
-O Studio não fala MCP nativamente. Instale no Studio um plugin-ponte da
-comunidade (procure por `roblox-studio-mcp` no GitHub), que expõe um servidor
-HTTP local, e registre o servidor MCP correspondente no JSON acima.
-
-## Atalho de teclado
-
-Nas configurações do KDE/GNOME (Teclado → Atalhos → Personalizado), crie um
-atalho que roda:
+## Uso avançado (terminal)
 
 ```bash
-bash -c 'cd ~/nobara-agent && ./run.sh'
+nobara-agent --texto       # abre direto no chat de texto
+nobara-agent --voz         # abre direto no chat de voz
+nobara-agent --tempo-real  # modo Live API experimental (áudio contínuo)
 ```
-
-Ajuste o caminho para onde você colocou a pasta.
 
 ## Configuração (`.env`)
 
-| Variável            | Padrão                        | Descrição                        |
-|---------------------|-------------------------------|----------------------------------|
-| `GEMINI_API_KEY`    | —                             | sua chave do Google AI Studio    |
-| `GEMINI_LIVE_MODEL` | `gemini-3.1-flash-live-preview` | modelo do modo voz            |
-| `GEMINI_TEXT_MODEL` | `gemini-3.1-flash`            | modelo do modo texto             |
-| `GEMINI_VOICE`      | (vazio = voz padrão)          | nome da voz, ex.: `Aoede`, `Puck`|
-| `CONFIRM_DANGEROUS` | `1`                           | pedir confirmação p/ comandos de escrita |
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `GEMINI_API_KEY` | — | chave do Google AI Studio |
+| `GEMINI_TEXT_MODEL` | `gemini-3.1-flash` | texto e transcrição |
+| `GEMINI_TTS_MODEL` | `gemini-2.5-flash-preview-tts` | voz do agente |
+| `GEMINI_LIVE_MODEL` | `gemini-3.1-flash-live-preview` | modo tempo real |
+| `GEMINI_VOICE` | `Aoede` | voz selecionada |
+| `CONFIRM_DANGEROUS` | `1` | confirmar comandos de escrita |
 
-Os nomes de modelo mudam com frequência; confira os atuais em
-[ai.google.dev/gemini-api/docs/live](https://ai.google.dev/gemini-api/docs/live).
+Os nomes de modelo mudam com frequência; confira em
+[ai.google.dev/gemini-api/docs](https://ai.google.dev/gemini-api/docs).
 
 ## Segurança
 
 - Comandos destrutivos (`rm`, `dnf remove`, `dd`, `sudo`...) **sempre** pedem
   confirmação, com `CONFIRM_DANGEROUS=1` (padrão).
-- A chave de API fica só no `.env` local. Não compartilhe a pasta com o `.env`.
-- A tela só é capturada quando você pede (`tela`) ou quando o agente usa a
-  ferramenta `ver_tela` — nada é enviado sem motivo.
+- A chave fica só no `.env` local (ignorado pelo git). Não compartilhe.
+- A tela só é capturada quando você pede.
