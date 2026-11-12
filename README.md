@@ -3,6 +3,12 @@
 Assistente de IA com **voz** (você fala, ele responde falando), **visão de tela**
 e **MCP** para o Nobara Linux, usando a API do Gemini — com menu visual no terminal.
 
+> **Quer um Jarvis pronto, estilo assistente de verdade?** Este repo também
+> traz um instalador do [Jarvis](https://github.com/isair/jarvis) (2.2k+ ⭐),
+> assistente de desktop com voz contínua, memória pessoal e MCP, já com build
+> nativo pra Linux e configurado pra usar o Gemini. Veja o
+> [JARVIS-DESKTOP.md](JARVIS-DESKTOP.md).
+
 ## Instalação
 
 ```bash
